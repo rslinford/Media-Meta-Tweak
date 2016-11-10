@@ -1,12 +1,23 @@
 import os
 import json
 
+def fix_date_in_filename(config):
+   basedir = config['media_source_dir']
+   print('Basedir: %s' % basedir)
+   for entry in os.listdir(config['media_source_dir']):
+      origname = entry
+      p=origname.split('_')
+      dumb_date = p[0].split('-')
+      date = '%s-%s' % (dumb_date[1], dumb_date[0])
+      newname = '%s_%s' % (date, p[1])
+      origname_path = os.path.join(basedir, origname)
+      newname_path = os.path.join(basedir, newname)
+      print('%s -> %s' % (newname_path, newname_path))
+      os.rename(origname_path, newname_path)
+
 def tweak_files(config):
-   print('Tweak stuff here')
-   for entry in os.scandir(config['media_source_dir']):
-      if not entry.name.startswith('.') and entry.is_file():
-         print(entry.name)
-   
+   fix_date_in_filename(config)
+
 def print_config_file(config):
    print('Config file located at:\n\t%s\nPoint "media_source_dir" path to your files. Use fully qualified path or relative path. Current working directory:\n\t%s' \
       % (config['config_file_name'], os.getcwd()))
