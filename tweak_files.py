@@ -3,7 +3,9 @@ import json
 
 def tweak_files(config):
    print('Tweak stuff here')
-   print_config_file(config)
+   for entry in os.scandir(config['media_source_dir']):
+      if not entry.name.startswith('.') and entry.is_file():
+         print(entry.name)
    
 def print_config_file(config):
    print('Config file located at:\n\t%s\nPoint "media_source_dir" path to your files. Use fully qualified path or relative path. Current working directory:\n\t%s' \
@@ -39,7 +41,7 @@ def main():
 
    try:
       config = load_config(config_file_name)
-      if not os.path.isfile(config['media_source_dir']):
+      if not os.path.isdir(config['media_source_dir']):
          print('media_source_dir is not a file:\n\t%s' % config['media_source_dir'])
          print_config_file(config)
          return 1
