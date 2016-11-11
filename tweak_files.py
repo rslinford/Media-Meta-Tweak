@@ -1,29 +1,19 @@
 import os
-import sys, traceback
+import sys
+import traceback
 import json
 from PIL import Image
 import piexif
 
-#import pywintypes, win32file, win32con
-#from pytz import timezone
-
-#def changeWindowsFileCreationTime(fname, newtime):
-#    wintime = pywintypes.Time(newtime)
-#    tz = timezone('US/Pacific')
-#    tz.localize(wintime)
-#    winfile = win32file.CreateFile(
-#        fname, win32con.GENERIC_WRITE,
-#        win32con.FILE_SHARE_READ | win32con.FILE_SHARE_WRITE | win32con.FILE_SHARE_DELETE,
-#        None, win32con.OPEN_EXISTING, win32con.FILE_ATTRIBUTE_NORMAL, None)
-#    win32file.SetFileTime(winfile, wintime, None, None)
-#    winfile.close()
-
+"""
+Swap month and year that are separated by underscore. Quick hack, no smarts.
+"""
 def fix_date_in_filename(config):
    basedir = config['media_source_dir']
    print('Basedir: %s' % basedir)
    for entry in os.listdir(basedir):
       origname = entry
-      p=origname.split('_')
+      p = origname.split('_')
       dumb_date = p[0].split('-')
       date = '%s-%s' % (dumb_date[1], dumb_date[0])
       newname = '%s_%s' % (date, p[1])
@@ -32,18 +22,43 @@ def fix_date_in_filename(config):
       print('%s -> %s' % (newname_path, newname_path))
       os.rename(origname_path, newname_path)
 
-def set_metadata(config, fn):
-   #{
-   #270: b'The Title of Photo', 
-   #271: b'Camera Make', 
-   #272: b'Camera Model', 
-   #315: b'Cecile Linford', 
-   #34665: 2138, 40091: (84, 0, 104, 0, 101, 0, 32, 0, 84, ...), 
-   #40092: (67, 0, 111, 0, 109, 0, 109, 0, 101, ...), 
-   #40093: (67, 0, 101, 0, 99, 0, 105, 0, 108, ...), 
-   #40094: (116, 0, 97, 0, 103, 0, 45, 0, 111, ...), 
-   #40095: (83, 0, 111, 0, 109, 0, 101, 0, 32, ...)}
+"""
+ Windows 0th attrs {
+   270: b'The Title of Photo', 
+   271: b'Camera Make', 
+   272: b'Camera Model', 
+   315: b'Cecile Linford', 
+   34665: 2138, 40091: (84, 0, 104, 0, 101, 0, 32, 0, 84, ...), 
+   40092: (67, 0, 111, 0, 109, 0, 109, 0, 101, ...), 
+   40093: (67, 0, 101, 0, 99, 0, 105, 0, 108, ...), 
+   40094: (116, 0, 97, 0, 103, 0, 45, 0, 111, ...), 
+   40095: (83, 0, 111, 0, 109, 0, 101, 0, 32, ...)
+ }
 
+ Windows exif attrs {
+   36867: b'1983:11:11 09:44:53', 
+   36868: b'1983:11:11 09:44:53', 
+   37521: b'79', 
+   37522: b'79'
+ }
+
+ Attrs currently set by this method {
+   '1st': {}, 
+   'GPS': {}, 
+   '0th': {
+      305: b'piexif', 
+      34665: 281, 
+      40092: (255, 254, 83, 0, 99, 0, 97, 0, 110, 0, 110, 0, 101, 0, 100, 0, 32, 0, 102, 0, 114, 0, 111, 0, 109, 0, 32, 0, 115, 0, 108, 0, 105, 0, 100, 0, 101, 0, 115, 0, 32, 0, 98, 0, 121, 0, 32, 0, 82, 0, 83, 0, 76, 0, 105, 0, 110, 0, 102, 0, 111, 0, 114, 0, 100, 0, 46, 0, 32, 0, 68, 0, 97, 0, 116, 0, 101, 0, 32, 0, 116, 0, 97, 0, 107, 0, 101, 0, 110, 0, 32, 0, 105, 0, 115, 0, 32, 0, 97, 0, 112, 0, 112, 0, 114, 0, 111, 0, 120, 0, 105, 0, 109, 0, 97, 0, 116, 0, 101, 0, 46, 0), 
+      40093: (255, 254, 67, 0, 101, 0, 99, 0, 105, 0, 108, 0, 101, 0, 32, 0, 76, 0, 105, 0, 110, 0, 102, 0, 111, 0, 114, 0, 100, 0), 
+      270: b'1983-05-film003', 
+      271: b"Mom's Trusty Camera"}, 
+   'thumbnail': None, 
+   'Interop': {}, 
+   'Exif': {
+      36867: b'1983:05:01 12:00:00'}
+   }
+"""
+def set_metadata(config, fn):
    fn_sans_path_sans_ext = os.path.split(fn)[1].split('.')[0]
 
    zeroth_ifd = {
@@ -54,8 +69,6 @@ def set_metadata(config, fn):
       piexif.ImageIFD.Software: config['software'],
       }
 
-   # {36867: b'1983:11:11 09:44:53', 36868: b'1983:11:11 09:44:53', 37521: b'79', 37522: b'79'}
-   x = config['date_time_original']
    exif_ifd = {
       piexif.ExifIFD.DateTimeOriginal: config['date_time_original']
       }
@@ -66,19 +79,32 @@ def set_metadata(config, fn):
    #   piexif.GPSIFD.GPSDateStamp: config['date_time_original']
    #   }
 
-   existing_metadata = piexif.load(fn)
+
    #exif_dict = {"0th":zeroth_ifd, "Exif":exif_ifd, "GPS":gps_ifd}
    exif_dict = {"0th":zeroth_ifd, "Exif":exif_ifd}
    exif_bytes = piexif.dump(exif_dict)
    im = Image.open(fn)
-   im.save(fn, exif=exif_bytes)
+
+   """
+   PIL JPEG 'quality'
+   The image quality, on a scale from 1 (worst) to 95 (best). The default is 75. 
+   Values above 95 should be avoided; 100 disables portions of the JPEG compression 
+   algorithm, and results in large files with hardly any gain in image quality.
+   http://pillow.readthedocs.io/en/3.1.x/handbook/image-file-formats.html
+   """
+   im.save(fn, exif=exif_bytes, quality=85)
+
+def print_metadata(fn):
+   existing_metadata = piexif.load(fn)
+   print('%s existing_metadata\n\t%s' % (fn, existing_metadata))
 
 def tweak_files(config):
    try:
       print('media_source_dir: %s' % config['media_source_dir'])
       for entry in os.listdir(config['media_source_dir']):
-         fp = os.path.join(config['media_source_dir'], entry)
-         set_metadata(config, fp)
+         fn = os.path.join(config['media_source_dir'], entry)
+         set_metadata(config, fn)
+         print_metadata(fn)
    except:
       traceback.print_exc()
 
