@@ -27,7 +27,7 @@ def fix_date_in_filename(config):
    270: b'The Title of Photo', 
    271: b'Camera Make', 
    272: b'Camera Model', 
-   315: b'Cecile Linford', 
+   315: b'Author Name', 
    34665: 2138, 40091: (84, 0, 104, 0, 101, 0, 32, 0, 84, ...), 
    40092: (67, 0, 111, 0, 109, 0, 109, 0, 101, ...), 
    40093: (67, 0, 101, 0, 99, 0, 105, 0, 108, ...), 
@@ -43,8 +43,8 @@ def fix_date_in_filename(config):
  }
 
  Attrs currently set by this method {
-   '1st': {}, 
-   'GPS': {}, 
+   'Exif': {
+      36867: b'1983:05:01 12:00:00'},
    '0th': {
       305: b'piexif', 
       34665: 281, 
@@ -52,11 +52,30 @@ def fix_date_in_filename(config):
       40093: (255, 254, 67, 0, 101, 0, 99, 0, 105, 0, 108, 0, 101, 0, 32, 0, 76, 0, 105, 0, 110, 0, 102, 0, 111, 0, 114, 0, 100, 0), 
       270: b'1983-05-film003', 
       271: b"Mom's Trusty Camera"}, 
+   'GPS': {}, 
+   '1st': {}, 
    'thumbnail': None, 
    'Interop': {}, 
-   'Exif': {
-      36867: b'1983:05:01 12:00:00'}
    }
+
+ Attrs after Google round trip. Retained everything; nothing was added. In Google Photos, the only 
+ Windows attrs that have a visible effect are 'Date Taken' (Exif 36867) and the name of the 
+ uploaded file. {
+   'Exif': {
+      36867: b'1983:10:22 12:00:00'}, 
+   '0th': {
+      305: b'piexif', 
+      34665: 283, 
+      40092: (255, 254, 83, 0, 99, 0, 97, 0, 110, 0, 110, 0, 101, 0, 100, 0, 32, 0, 102, 0, 114, 0, 111, 0, 109, 0, 32, 0, 51, 0, 53, 0, 109, 0, 109, 0, 32, 0, 102, 0, 105, 0, 108, 0, 109, 0, 32, 0, 98, 0, 121, 0, 32, 0, 82, 0, 83, 0, 76, 0, 105, 0, 110, 0, 102, 0, 111, 0, 114, 0, 100, 0, 46, 0, 32, 0, 68, 0, 97, 0, 116, 0, 101, 0, 32, 0, 116, 0, 97, 0, 107, 0, 101, 0, 110, 0, 32, 0, 105, 0, 115, 0, 32, 0, 97, 0, 112, 0, 112, 0, 114, 0, 111, 0, 120, 0, 105, 0, 109, 0, 97, 0, 116, 0, 101, 0, 46, 0), 
+      40093: (255, 254, 67, 0, 101, 0, 99, 0, 105, 0, 108, 0, 101, 0, 32, 0, 76, 0, 105, 0, 110, 0, 102, 0, 111, 0, 114, 0, 100, 0), 
+      270: b'1983-10_036', 
+      271: b"Mom's Trusty Camera"},
+   'GPS': {}, 
+   '1st': {}, 
+   'thumbnail': None, 
+   'Interop': {}, 
+   }
+
 """
 def set_metadata(config, fn):
    fn_sans_path_sans_ext = os.path.split(fn)[1].split('.')[0]
@@ -103,8 +122,10 @@ def tweak_files(config):
       print('media_source_dir: %s' % config['media_source_dir'])
       for entry in os.listdir(config['media_source_dir']):
          fn = os.path.join(config['media_source_dir'], entry)
-         set_metadata(config, fn)
-         print_metadata(fn)
+         if False:
+            set_metadata(config, fn)
+         if True:
+            print_metadata(fn)
    except:
       traceback.print_exc()
 
