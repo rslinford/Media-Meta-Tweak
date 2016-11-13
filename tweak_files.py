@@ -23,6 +23,23 @@ def fix_date_in_filename(config):
       os.rename(origname_path, newname_path)
 
 """
+19xx-yy-film_002.jpg
+"""
+def fix_date_in_filename_2(config):
+   basedir = config['media_source_dir']
+   print('Basedir: %s' % basedir)
+   for entry in os.listdir(basedir):
+      origname = entry
+      p = origname.split('_')
+      suffix = p[1]
+      prefix = '1983-07-film'
+      newname = '%s_%s' % (prefix, suffix)
+      origname_path = os.path.join(basedir, origname)
+      newname_path = os.path.join(basedir, newname)
+      print('%s -> %s' % (newname_path, newname_path))
+      os.rename(origname_path, newname_path)
+
+"""
  Windows 0th attrs {
    270: b'The Title of Photo', 
    271: b'Camera Make', 
@@ -75,7 +92,47 @@ def fix_date_in_filename(config):
    'thumbnail': None, 
    'Interop': {}, 
    }
-
+ Existing_metadata in LG G3 photo {
+   'Exif': {
+      36864: b'0220', 
+      37121: b'\x01\x02\x03\x00', 
+      40962: 4160,
+      36867: b'2016:11:09 10:47:47', 
+      36868: b'2016:11:09 10:47:47', 
+      40965: 1158, 
+      40960: b'0100', 
+      37383: 2, 
+      37385: 0, 
+      37386: (3970, 1000),
+      37520: b'273393', 
+      37521: b'273393', 
+      37522: b'273393', 
+      40963: 3120, 
+      37380: (0, 1), 
+      33434: (1, 581), 
+      33437: (240, 100), 
+      41988: (100, 100), 
+      42016: b'ee88e0edfc03cbfc0000000000000000', 
+      40961: 1,
+      37510: b'    FocusArea=100111111\x00\x00\x00\..., 
+      34855: 50, 
+      41987: 0}, 
+   '0th': {
+      272: b'LG-D851', 
+      305: b'Picasa', 
+      274: 1, 
+      531: 1, 
+      34853: 1108, 
+      296: 2, 
+      34665: 180, 
+      282: (72, 1), 
+      283: (72, 1), 
+      271: b'LG Electronics'}, 
+   'GPS': {
+      0: (2, 2, 0, 0), # Exif.GPSInfo.GPSVersionID
+      5: 0,            # Exif.GPSInfo.GPSAltitudeRef Indicates the altitude used as the reference altitude. If the reference is sea level and the altitude is above sea level, 0 is given. If the altitude is below sea level, a value of 1 is given and the altitude is indicated as an absolute value in the GSPAltitude tag. The reference unit is meters. Note that this tag is BYTE type, unlike other reference tags.
+      6: (0, 1000)},   # Exif.GPSInfo.GPSAltitude in meters
+ }
 """
 def set_metadata(config, fn):
    fn_sans_path_sans_ext = os.path.split(fn)[1].split('.')[0]
@@ -115,19 +172,21 @@ def set_metadata(config, fn):
 
 def print_metadata(fn):
    existing_metadata = piexif.load(fn)
-   print('%s existing_metadata\n\t%s' % (fn, existing_metadata))
+   print('Existing_metadata in %s\n\t%s' % (fn, existing_metadata))
 
 def tweak_files(config):
-   try:
-      print('media_source_dir: %s' % config['media_source_dir'])
-      for entry in os.listdir(config['media_source_dir']):
+   print('media_source_dir: %s' % config['media_source_dir'])
+   for entry in os.listdir(config['media_source_dir']):
+      try:
          fn = os.path.join(config['media_source_dir'], entry)
-         if False:
+         if not True:
+            fix_date_in_filename_2(config)
+         if True:
             set_metadata(config, fn)
          if True:
             print_metadata(fn)
-   except:
-      traceback.print_exc()
+      except ValueError as ve:
+         print('%s\n\t%s' % (fn, ve))
 
 def print_config_file(config):
    print('Config file located at:\n\t%s\nPoint "media_source_dir" path to your files. Use fully qualified path or relative path. Current working directory:\n\t%s' \
@@ -173,9 +232,11 @@ def main():
          print_config_file(config)
          return 1
       normalize_config(config)
-      tweak_files(config)
    except (FileNotFoundError):
       create_default_config(config_file_name)
+      raise
+
+   tweak_files(config)
 
 if __name__ == '__main__':
    try:
