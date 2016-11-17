@@ -4,6 +4,7 @@ import traceback
 import json
 from PIL import Image
 import piexif
+from datetime import datetime
 
 """
 Swap month and year that are separated by underscore. Quick hack, no smarts.
@@ -36,6 +37,37 @@ def fix_date_in_filename_2(config):
       newname = '%s_%s' % (prefix, suffix)
       origname_path = os.path.join(basedir, origname)
       newname_path = os.path.join(basedir, newname)
+      print('%s -> %s' % (newname_path, newname_path))
+      os.rename(origname_path, newname_path)
+
+def parse_date(date_str):
+   dt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
+   return dt
+
+def make_target_dir_based_on_date(config):
+   parentdir = os.path.split(config['media_source_dir'])[0]
+   dt = parse_date(config['date_time_original'])
+   targetdirname = '%04d-%02d-%02d - film' % (dt.year, dt.month, dt.day)
+   targetdir = os.path.join(parentdir, targetdirname)
+   n = 0
+   while (os.path.exists(targetdir)):
+      n += 1
+      targetdirname = '%04d-%02d-%02d - film_%03d' % (dt.year, dt.month, dt.day, n)
+      targetdir = os.path.join(parentdir, targetdirname)
+   print('Making targetdir: %s' % targetdir)
+   os.mkdir(targetdir)
+   return (targetdir)
+
+def rename_and_move(config, targetdir):
+   sourcedir = config['media_source_dir']
+   dt = parse_date(config['date_time_original'])
+   prefix = '%04d-%02d-%02d' % (dt.year, dt.month, dt.day)
+   print('Moving sourcedir: %s\ntargetdir: %s\nprefix: %s' % (sourcedir, targetdir, prefix))
+   for entry in os.listdir(sourcedir):
+      suffix = entry.split('_')[1]
+      newname = '%s_%s' % (prefix, suffix)
+      origname_path = os.path.join(sourcedir, entry)
+      newname_path = os.path.join(targetdir, newname)
       print('%s -> %s' % (newname_path, newname_path))
       os.rename(origname_path, newname_path)
 
@@ -155,7 +187,6 @@ def set_metadata(config, fn):
    #   piexif.GPSIFD.GPSDateStamp: config['date_time_original']
    #   }
 
-
    #exif_dict = {"0th":zeroth_ifd, "Exif":exif_ifd, "GPS":gps_ifd}
    exif_dict = {"0th":zeroth_ifd, "Exif":exif_ifd}
    exif_bytes = piexif.dump(exif_dict)
@@ -174,19 +205,31 @@ def print_metadata(fn):
    existing_metadata = piexif.load(fn)
    print('Existing_metadata in %s\n\t%s' % (fn, existing_metadata))
 
+"""
+Do all the stuff: 
+   1) create target dir based on Date Taken
+   2) rename photos based on Date Taken
+   3) move photos to newly created target dir
+   4) set metadata in photos including Date Taken
+"""
 def tweak_files(config):
    print('media_source_dir: %s' % config['media_source_dir'])
-   for entry in os.listdir(config['media_source_dir']):
+   if True:
+      targetdir = make_target_dir_based_on_date(config)
+   if True:
+      rename_and_move(config, targetdir)
+   for entry in os.listdir(targetdir):
       try:
-         fn = os.path.join(config['media_source_dir'], entry)
-         if not True:
-            fix_date_in_filename_2(config)
+         fn = os.path.join(targetdir, entry)
          if True:
             set_metadata(config, fn)
          if True:
             print_metadata(fn)
       except ValueError as ve:
          print('%s\n\t%s' % (fn, ve))
+
+
+################# BEGIN Main Template With Config ######################
 
 def print_config_file(config):
    print('Config file located at:\n\t%s\nPoint "media_source_dir" path to your files. Use fully qualified path or relative path. Current working directory:\n\t%s' \
