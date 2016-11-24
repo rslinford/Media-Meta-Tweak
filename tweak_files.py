@@ -33,7 +33,7 @@ def fix_date_in_filename_2(config):
       origname = entry
       p = origname.split('_')
       suffix = p[1]
-      prefix = '1983-07-film'
+      prefix = '1983-07-%s' % config['media_type']
       newname = '%s_%s' % (prefix, suffix)
       origname_path = os.path.join(basedir, origname)
       newname_path = os.path.join(basedir, newname)
@@ -47,12 +47,12 @@ def parse_date(date_str):
 def make_target_dir_based_on_date(config):
    parentdir = os.path.split(config['media_source_dir'])[0]
    dt = parse_date(config['date_time_original'])
-   targetdirname = '%04d-%02d-%02d - film' % (dt.year, dt.month, dt.day)
+   targetdirname = '%04d-%02d-%02d - %s' % (dt.year, dt.month, dt.day, config['media_type'])
    targetdir = os.path.join(parentdir, targetdirname)
    n = 0
    while (os.path.exists(targetdir)):
       n += 1
-      targetdirname = '%04d-%02d-%02d - film_%03d' % (dt.year, dt.month, dt.day, n)
+      targetdirname = '%04d-%02d-%02d - %s_%03d' % (dt.year, dt.month, dt.day, config['media_type'], n)
       targetdir = os.path.join(parentdir, targetdirname)
    print('Making targetdir: %s' % targetdir)
    os.mkdir(targetdir)
@@ -251,6 +251,8 @@ def normalize_config(config):
    config['xp_comment'] = config.get('xp_comment', 'Some Comment')
    config['software'] = config.get('software', 'piexif')
    config['date_time_original'] = config.get('date_time_original', '1970:01:01 12:00:00')
+   config['media_type'] = config.get('media_type', 'film')
+   
 
 def create_default_config(config_file_name):
    config = {'config_file_name':config_file_name}
