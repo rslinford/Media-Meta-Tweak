@@ -4,7 +4,7 @@ import traceback
 import json
 from PIL import Image
 import piexif
-from datetime import datetime
+from datetime import datetime, timedelta
 
 """
 Swap month and year that are separated by underscore. Quick hack, no smarts.
@@ -43,6 +43,10 @@ def fix_date_in_filename_2(config):
 def parse_date(date_str):
    dt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
    return dt
+
+def format_date(dt):
+   str = datetime.strftime(dt, '%Y:%m:%d %H:%M:%S')
+   return str
 
 def make_target_dir_based_on_date(config):
    parentdir = os.path.split(config['media_source_dir'])[0]
@@ -166,7 +170,7 @@ def rename_and_move(config, targetdir):
       6: (0, 1000)},   # Exif.GPSInfo.GPSAltitude in meters
  }
 """
-def set_metadata(config, fn):
+def set_metadata(config, date_time_counter, fn):
    fn_sans_path_sans_ext = os.path.split(fn)[1].split('.')[0]
 
    zeroth_ifd = {
@@ -178,7 +182,7 @@ def set_metadata(config, fn):
       }
 
    exif_ifd = {
-      piexif.ExifIFD.DateTimeOriginal: config['date_time_original']
+      piexif.ExifIFD.DateTimeOriginal: format_date(date_time_counter)
       }
 
    #gps_ifd = {
@@ -214,17 +218,16 @@ Do all the stuff:
 """
 def tweak_files(config):
    print('media_source_dir: %s' % config['media_source_dir'])
-   if True:
-      targetdir = make_target_dir_based_on_date(config)
-   if True:
-      rename_and_move(config, targetdir)
+   targetdir = make_target_dir_based_on_date(config)
+   rename_and_move(config, targetdir)
+   date_time_counter = parse_date(config['date_time_original'])
    for entry in os.listdir(targetdir):
       try:
          fn = os.path.join(targetdir, entry)
-         if True:
-            set_metadata(config, fn)
-         if True:
-            print_metadata(fn)
+         set_metadata(config, date_time_counter, fn)
+         #print_metadata(fn)
+         print
+         date_time_counter += timedelta(minutes = 1)
       except ValueError as ve:
          print('%s\n\t%s' % (fn, ve))
 
