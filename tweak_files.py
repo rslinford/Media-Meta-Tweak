@@ -67,8 +67,19 @@ def rename_and_move(config, targetdir):
    dt = parse_date(config['date_time_original'])
    prefix = '%04d-%02d-%02d' % (dt.year, dt.month, dt.day)
    print('Moving sourcedir: %s\ntargetdir: %s\nprefix: %s' % (sourcedir, targetdir, prefix))
+   sequence_counter = 0
    for entry in os.listdir(sourcedir):
-      suffix = entry.split('_')[1]
+      sequence_counter += 1
+      if (len(entry.split('_')) > 1):
+         # Underscore expected to precede the sequence counter in a filename.
+         suffix = entry.split('_')[1]
+         if config['resequence']:
+            # Replace existing sequence
+            suffix = '%03d%s' % (sequence_counter, suffix[-4:])
+      else:
+         # No underscore found in filename. Assume no sequence exists. Add one to filename.
+         suffix = '%03d%s' % (sequence_counter, suffix[-4:])
+
       newname = '%s_%s' % (prefix, suffix)
       origname_path = os.path.join(sourcedir, entry)
       newname_path = os.path.join(targetdir, newname)
@@ -227,6 +238,7 @@ def tweak_files(config):
          if ext != '.jpg':
             continue
          fn = os.path.join(targetdir, entry)
+         print('set metadata %s' % fn)
          set_metadata(config, date_time_counter, fn)
          date_time_counter += timedelta(minutes = 1)
       except ValueError as ve:
@@ -256,7 +268,7 @@ def normalize_config(config):
    config['software'] = config.get('software', 'piexif')
    config['date_time_original'] = config.get('date_time_original', '1970:01:01 12:00:00')
    config['media_type'] = config.get('media_type', 'film')
-   
+   config['resequence'] = config.get('resequence', False)
 
 def create_default_config(config_file_name):
    config = {'config_file_name':config_file_name}
