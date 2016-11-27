@@ -70,15 +70,21 @@ def rename_and_move(config, targetdir):
    sequence_counter = 0
    for entry in os.listdir(sourcedir):
       sequence_counter += 1
-      if (len(entry.split('_')) > 1):
-         # Underscore expected to precede the sequence counter in a filename.
-         suffix = entry.split('_')[1]
+      if entry[-9:-4] == 'notes':
+         suffix = entry[-9:]
+      elif (len(entry.split('_')) > 1):
          if config['resequence']:
             # Replace existing sequence
-            suffix = '%03d%s' % (sequence_counter, suffix[-4:])
+            suffix = '%03d%s' % (sequence_counter, entry[-4:])
+         else:
+            # Underscore expected to precede the sequence counter in a filename.
+            suffix = entry.split('_')[-1]
       else:
-         # No underscore found in filename. Assume no sequence exists. Add one to filename.
-         suffix = '%03d%s' % (sequence_counter, suffix[-4:])
+         if entry[-4:] == '.jpg':
+            # No underscore found in filename. Assume no sequence exists. Add one to filename.
+            suffix = '%03d%s' % (sequence_counter, entry[-4:])
+         else:
+            suffix = entry[-4:]
 
       newname = '%s_%s' % (prefix, suffix)
       origname_path = os.path.join(sourcedir, entry)
