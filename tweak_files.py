@@ -223,10 +223,11 @@ def tweak_files(config):
    date_time_counter = parse_date(config['date_time_original'])
    for entry in os.listdir(targetdir):
       try:
+         ext = entry[-4:]
+         if ext != '.jpg':
+            continue
          fn = os.path.join(targetdir, entry)
          set_metadata(config, date_time_counter, fn)
-         #print_metadata(fn)
-         print
          date_time_counter += timedelta(minutes = 1)
       except ValueError as ve:
          print('%s\n\t%s' % (fn, ve))
