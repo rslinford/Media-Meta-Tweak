@@ -190,11 +190,13 @@ def rename_and_move(config, targetdir):
 def set_metadata(config, date_time_counter, fn):
    fn_sans_path_sans_ext = os.path.split(fn)[1].split('.')[0]
 
+   xp_comment = config['xp_comment'] % (config['media_type'])
+
    zeroth_ifd = {
       piexif.ImageIFD.ImageDescription: fn_sans_path_sans_ext,
       piexif.ImageIFD.Make: config['make'],
       piexif.ImageIFD.XPAuthor: config['xp_author'].encode('utf-16'),
-      piexif.ImageIFD.XPComment: config['xp_comment'].encode('utf-16'),
+      piexif.ImageIFD.XPComment: xp_comment.encode('utf-16'),
       piexif.ImageIFD.Software: config['software'],
       }
 
@@ -270,10 +272,10 @@ def normalize_config(config):
    config['media_source_dir'] = config.get('media_source_dir', 'your_media_source_dir')
    config['make'] = config.get('make', 'Cannon')
    config['xp_author'] = config.get('xp_author', 'Some Author')
-   config['xp_comment'] = config.get('xp_comment', 'Some Comment')
+   config['media_type'] = config.get('media_type', 'film')
+   config['xp_comment'] = config.get('xp_comment', 'Some Comment. Media type %s')
    config['software'] = config.get('software', 'piexif')
    config['date_time_original'] = config.get('date_time_original', '1970:01:01 12:00:00')
-   config['media_type'] = config.get('media_type', 'film')
    config['resequence'] = config.get('resequence', False)
 
 def create_default_config(config_file_name):
