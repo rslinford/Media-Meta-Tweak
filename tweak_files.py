@@ -67,7 +67,7 @@ def rename_and_move(config, targetdir):
    dt = parse_date(config['date_time_original'])
    prefix = '%04d-%02d-%02d' % (dt.year, dt.month, dt.day)
    print('Moving sourcedir: %s\ntargetdir: %s\nprefix: %s' % (sourcedir, targetdir, prefix))
-   sequence_counter = 0
+   sequence_counter = config['resequence_start'] - 1
    for entry in os.listdir(sourcedir):
       sequence_counter += 1
       if entry[-9:-4] == 'notes':
@@ -277,6 +277,8 @@ def normalize_config(config):
    config['software'] = config.get('software', 'piexif')
    config['date_time_original'] = config.get('date_time_original', '1970:01:01 12:00:00')
    config['resequence'] = config.get('resequence', False)
+   config['resequence_start'] = config.get('resequence_start', 1)
+   
 
 def create_default_config(config_file_name):
    config = {'config_file_name':config_file_name}
