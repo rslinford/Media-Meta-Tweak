@@ -5,6 +5,7 @@ import json
 from PIL import Image
 import piexif
 from datetime import datetime, timedelta
+import shutil
 
 """
 Swap month and year that are separated by underscore. Quick hack, no smarts.
@@ -62,19 +63,23 @@ def make_target_dir_based_on_date(config):
    os.mkdir(targetdir)
    return (targetdir)
 
-def rename_and_move(config, targetdir):
+def rename_and_move(config, target_dir):
    sourcedir = config['media_source_dir']
    dt = parse_date(config['date_time_original'])
    prefix = '%04d-%02d-%02d' % (dt.year, dt.month, dt.day)
-   print('Moving sourcedir: %s\ntargetdir: %s\nprefix: %s' % (sourcedir, targetdir, prefix))
+   print('Moving sourcedir: %s\ntargetdir: %s\nprefix: %s' % (sourcedir, target_dir, prefix))
    sequence_counter = config['resequence_start'] - 1
    for entry in os.listdir(sourcedir):
-      sequence_counter += 1
+      copy_file_instead_of_moving = False
       if entry[-9:-4] == 'notes':
          suffix = entry[-9:]
+      elif entry[-13:] == 'settings.json':
+         copy_file_instead_of_moving = True
+         suffix = entry[-13:]
       elif (len(entry.split('_')) > 1):
          if config['resequence']:
             # Replace existing sequence
+            sequence_counter += 1
             suffix = '%03d%s' % (sequence_counter, entry[-4:])
          else:
             # Underscore expected to precede the sequence counter in a filename.
@@ -82,15 +87,19 @@ def rename_and_move(config, targetdir):
       else:
          if entry[-4:] == '.jpg':
             # No underscore found in filename. Assume no sequence exists. Add one to filename.
+            sequence_counter += 1
             suffix = '%03d%s' % (sequence_counter, entry[-4:])
          else:
             suffix = entry[-4:]
 
       newname = '%s_%s' % (prefix, suffix)
       origname_path = os.path.join(sourcedir, entry)
-      newname_path = os.path.join(targetdir, newname)
+      newname_path = os.path.join(target_dir, newname)
       print('%s -> %s' % (newname_path, newname_path))
-      os.rename(origname_path, newname_path)
+      if copy_file_instead_of_moving:
+         shutil.copy(origname_path, newname_path)
+      else:
+         os.rename(origname_path, newname_path)
 
 """
  Windows 0th attrs {
@@ -303,6 +312,7 @@ def main():
          print_config_file(config)
          return 1
       normalize_config(config)
+      config['media_source_dir'] = os.path.abspath(config['media_source_dir'])
    except (FileNotFoundError):
       create_default_config(config_file_name)
       raise
