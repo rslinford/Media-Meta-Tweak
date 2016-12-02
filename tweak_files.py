@@ -1,45 +1,9 @@
 import os
-import sys
-import traceback
 import json
 from PIL import Image
 import piexif
 from datetime import datetime, timedelta
 import shutil
-
-"""
-Swap month and year that are separated by underscore. Quick hack, no smarts.
-"""
-def fix_date_in_filename(config):
-   basedir = config['media_source_dir']
-   print('Basedir: %s' % basedir)
-   for entry in os.listdir(basedir):
-      origname = entry
-      p = origname.split('_')
-      dumb_date = p[0].split('-')
-      date = '%s-%s' % (dumb_date[1], dumb_date[0])
-      newname = '%s_%s' % (date, p[1])
-      origname_path = os.path.join(basedir, origname)
-      newname_path = os.path.join(basedir, newname)
-      print('%s -> %s' % (newname_path, newname_path))
-      os.rename(origname_path, newname_path)
-
-"""
-19xx-yy-film_002.jpg
-"""
-def fix_date_in_filename_2(config):
-   basedir = config['media_source_dir']
-   print('Basedir: %s' % basedir)
-   for entry in os.listdir(basedir):
-      origname = entry
-      p = origname.split('_')
-      suffix = p[1]
-      prefix = '1983-07-%s' % config['media_type']
-      newname = '%s_%s' % (prefix, suffix)
-      origname_path = os.path.join(basedir, origname)
-      newname_path = os.path.join(basedir, newname)
-      print('%s -> %s' % (newname_path, newname_path))
-      os.rename(origname_path, newname_path)
 
 def parse_date(date_str):
    dt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
@@ -238,7 +202,7 @@ def print_metadata(fn):
    print('Existing_metadata in %s\n\t%s' % (fn, existing_metadata))
 
 """
-Do all the stuff: 
+tweak_files does all the stuff: 
    1) create target dir based on Date Taken
    2) rename photos based on Date Taken
    3) move photos to newly created target dir
