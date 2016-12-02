@@ -39,7 +39,7 @@ def rename_and_move(config, target_dir):
          suffix = entry[-9:]
       elif entry[-13:] == 'settings.json':
          copy_file_instead_of_moving = True
-         suffix = entry[-13:]
+         suffix = entry
       elif (len(entry.split('_')) > 1):
          if config['resequence']:
             # Replace existing sequence
